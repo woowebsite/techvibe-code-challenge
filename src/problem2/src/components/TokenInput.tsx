@@ -1,7 +1,7 @@
 import { ChevronDown, Wallet } from 'lucide-react';
-import { Token } from '../types/token';
-import { TokenIcon } from './TokenIcon';
-import { formatCurrency, formatAmount, formatNumberInput } from '../utils/formatters';
+import { Token } from '@/types/token';
+import { TokenIcon } from '@/components/TokenIcon';
+import { formatCurrency, formatAmount, formatNumberInput } from '@/utils/formatters';
 
 interface TokenInputProps {
   label: string;

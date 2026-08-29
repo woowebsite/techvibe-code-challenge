@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { ArrowLeftRight, ChevronDown, ChevronUp, Fuel, Route, ShieldCheck, Zap } from 'lucide-react';
-import { Token } from '../types/token';
-import { formatAmount } from '../utils/formatters';
+import { Token } from '@/types/token';
+import { formatAmount } from '@/utils/formatters';
 
 interface SwapDetailsProps {
   fromToken?: Token;

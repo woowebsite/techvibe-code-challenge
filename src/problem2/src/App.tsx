@@ -1,11 +1,11 @@
 import { useState } from 'react';
-import { usePrices } from './hooks/usePrices';
-import { useWallet } from './hooks/useWallet';
-import { Header } from './components/Header';
-import { SwapCard } from './components/SwapCard';
-import { TransactionHistoryModal } from './components/TransactionHistoryModal';
-import { TokenIcon } from './components/TokenIcon';
-import { formatCurrency } from './utils/formatters';
+import { usePrices } from '@/hooks/usePrices';
+import { useWallet } from '@/hooks/useWallet';
+import { Header } from '@/components/Header';
+import { SwapCard } from '@/components/SwapCard';
+import { TransactionHistoryModal } from '@/components/TransactionHistoryModal';
+import { TokenIcon } from '@/components/TokenIcon';
+import { formatCurrency } from '@/utils/formatters';
 import { Shield, Zap, TrendingUp, AlertCircle } from 'lucide-react';
 
 export default function App() {

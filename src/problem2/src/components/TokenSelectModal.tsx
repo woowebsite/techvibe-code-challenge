@@ -1,8 +1,8 @@
 import { useState, useMemo, useEffect, useRef } from 'react';
 import { Search, X, Check, Sparkles } from 'lucide-react';
-import { Token } from '../types/token';
-import { TokenIcon } from './TokenIcon';
-import { formatCurrency, formatAmount } from '../utils/formatters';
+import { Token } from '@/types/token';
+import { TokenIcon } from '@/components/TokenIcon';
+import { formatCurrency, formatAmount } from '@/utils/formatters';
 
 interface TokenSelectModalProps {
   isOpen: boolean;

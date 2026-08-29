@@ -1,7 +1,7 @@
 import { X, ArrowRight, CheckCircle2, Trash2 } from 'lucide-react';
-import { SwapTransaction } from '../types/token';
-import { TokenIcon } from './TokenIcon';
-import { formatAmount, truncateHash } from '../utils/formatters';
+import { SwapTransaction } from '@/types/token';
+import { TokenIcon } from '@/components/TokenIcon';
+import { formatAmount, truncateHash } from '@/utils/formatters';
 
 interface TransactionHistoryModalProps {
   isOpen: boolean;

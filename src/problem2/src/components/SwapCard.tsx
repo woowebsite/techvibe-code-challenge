@@ -1,11 +1,11 @@
 import { useState, useEffect, useMemo } from 'react';
 import { ArrowDownUp, Sparkles, ArrowRightLeft } from 'lucide-react';
-import { Token, SwapField } from '../types/token';
-import { TokenInput } from './TokenInput';
-import { SwapDetails } from './SwapDetails';
-import { SlippageSettings } from './SlippageSettings';
-import { TokenSelectModal } from './TokenSelectModal';
-import { ConfirmSwapModal } from './ConfirmSwapModal';
+import { Token, SwapField } from '@/types/token';
+import { TokenInput } from '@/components/TokenInput';
+import { SwapDetails } from '@/components/SwapDetails';
+import { SlippageSettings } from '@/components/SlippageSettings';
+import { TokenSelectModal } from '@/components/TokenSelectModal';
+import { ConfirmSwapModal } from '@/components/ConfirmSwapModal';
 
 interface SwapCardProps {
   tokens: Token[];

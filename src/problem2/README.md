@@ -1,60 +1,48 @@
 # Problem 2: OmniSwap - Fancy Currency Swap Platform 🚀
 
-A modern, high-performance, and visually captivating **Decentralized Currency Swap (DEX)** web application built with **Vite**, **React 19**, **TypeScript**, and **Tailwind CSS v4**.
+A production-grade, high-performance, and visually captivating **Decentralized Currency Swap (DEX)** web application built with **Vite**, **React 19**, **TypeScript**, **Tailwind CSS v4**, **Axios**, and **TanStack React Query**.
 
 ---
 
-## 🌟 Key Features
+## 🏛️ Architecture & Enterprise Design Patterns
 
-1. **Real-Time Token Oracle & Deduplication**:
-   - Fetches live price feed from `https://interview.switcheo.com/prices.json`.
-   - Groups and deduplicates multi-timestamp records (e.g. USDC, BUSD) keeping the latest price.
-   - Includes graceful offline fallback data if network connectivity is interrupted.
+1. **Environment Configuration (`.env` & `.env.example`)**:
+   - Environment variables are isolated and validated in [`src/config/env.ts`](./src/config/env.ts).
+   - Strict typing with `ImportMetaEnv` defined in [`src/vite-env.d.ts`](./src/vite-env.d.ts) for autocomplete and compile-time validation.
 
-2. **Official Token Icons**:
-   - Dynamic SVGs loaded from `Switcheo/token-icons` repository (`https://raw.githubusercontent.com/Switcheo/token-icons/main/tokens/${symbol}.svg`).
-   - Seamless fallback avatar badge generator with distinct gradients and initials for any non-SVG tokens.
+2. **Clean Service Layer & Intercepted HTTP Client**:
+   - Centralized Axios instance ([`src/services/apiClient.ts`](./src/services/apiClient.ts)) with timeout controls, request metadata timing, and response interceptors.
+   - Dedicated [`src/services/priceService.ts`](./src/services/priceService.ts) for oracle fetching and data deduplication.
 
-3. **Bi-Directional Interactive Exchange**:
-   - Enter amount in either **You Pay** or **You Receive** input to automatically calculate counterpart values based on real-time market exchange rates.
-   - Live USD valuation preview calculated underneath each input.
-   - Quick balance percentage buttons (`50%`, `MAX`) based on the user's wallet.
-   - One-click token invert/flip button with a smooth 180° rotation animation.
+3. **Server State Management via TanStack React Query**:
+   - Auto-polling oracle prices at configurable intervals (`VITE_PRICE_REFETCH_INTERVAL_MS`).
+   - Caching, deduplication, retry exponential backoff, and window focus refetching.
 
-4. **Comprehensive Trading Details**:
-   - Toggleable Exchange Rate (e.g., `1 ETH ≈ 1,645.93 USDC` ⇄ `1 USDC ≈ 0.000607 ETH`).
-   - Minimum Received calculation factoring in custom slippage.
-   - Dynamic Price Impact indicator (Color-coded Green / Amber / Rose based on trade volume).
-   - Estimated Network Gas Fee & Liquidity Routing path.
+4. **Domain Constants & Modular Structure**:
+   - [`src/constants/tokens.ts`](./src/constants/tokens.ts): Token names, popular badges, fallback oracle prices.
+   - [`src/constants/swap.ts`](./src/constants/swap.ts): Slippage presets, network fee estimates, trade thresholds.
 
-5. **Configurable Slippage Tolerance**:
-   - Quick presets (`0.1%`, `0.5%`, `1.0%`) and Custom percentage input.
-   - Safety warning alerts for high slippage (front-running risk) and low slippage (revert risk).
-
-6. **Full Transaction Simulation & History**:
-   - **Review Modal** displaying comprehensive trade parameters before signing.
-   - **Transaction broadcasting simulation** with animated loaders.
-   - **Celebration screen** with confetti animation, mock transaction hash, copy to clipboard, and Etherscan explorer simulation.
-   - **Transaction History modal** tracking all completed swaps with timestamps and amounts.
-   - **Simulated Wallet** with persistent balances in `localStorage` and a 1-click reset option.
-
-7. **Design & Aesthetics**:
-   - Premium DeFi dark mode with glowing ambient neon gradients, frosted glassmorphism borders, Plus Jakarta Sans typography, and fluid micro-interactions.
+5. **Fault Tolerance & Error Boundary**:
+   - [`src/components/ErrorBoundary.tsx`](./src/components/ErrorBoundary.tsx) to catch runtime exceptions gracefully with user-friendly recovery UI.
 
 ---
 
-## 🛠️ Tech Stack
+## ⚙️ Environment Variables
 
-- **Framework**: [Vite](https://vite.dev/) + [React 19](https://react.dev/) + [TypeScript](https://www.typescriptlang.org/)
-- **Styling**: [Tailwind CSS v4](https://tailwindcss.com/)
-- **Icons**: [Lucide React](https://lucide.dev/)
-- **Effects**: [canvas-confetti](https://www.npmjs.com/package/canvas-confetti)
+| Variable | Description | Default Value |
+| :--- | :--- | :--- |
+| `VITE_APP_NAME` | Branding name | `OmniSwap` |
+| `VITE_PRICES_API_URL` | Token price feed API | `https://interview.switcheo.com/prices.json` |
+| `VITE_TOKEN_ICON_BASE_URL` | SVG token icons base repository | `https://raw.githubusercontent.com/Switcheo/token-icons/main/tokens` |
+| `VITE_PRICE_REFETCH_INTERVAL_MS`| Oracle auto-refresh cycle | `60000` (60s) |
+| `VITE_PRICE_STALE_TIME_MS` | Cache freshness duration | `30000` (30s) |
+| `VITE_API_TIMEOUT_MS` | HTTP network timeout | `8000` (8s) |
 
 ---
 
 ## 🚀 Getting Started
 
-### 1. Run via root workspace
+### 1. From workspace root
 ```bash
 # Start development server
 npm run dev:problem2
@@ -63,9 +51,12 @@ npm run dev:problem2
 npm run build:problem2
 ```
 
-### 2. Or run directly inside `src/problem2`
+### 2. Or inside `src/problem2`
 ```bash
 cd src/problem2
+
+# Copy environment config
+cp .env.example .env
 
 # Install dependencies
 npm install
@@ -73,7 +64,7 @@ npm install
 # Start development server
 npm run dev
 
-# Build for production
+# Run TypeScript checks & production build
 npm run build
 ```
-The application will be accessible at `http://localhost:5173`.
+Open `http://localhost:5173` to explore the application.

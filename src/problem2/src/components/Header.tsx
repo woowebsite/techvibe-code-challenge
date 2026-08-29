@@ -8,8 +8,9 @@ import {
   RefreshCcw,
   CircleDot,
 } from 'lucide-react';
-import { WalletBalance } from '../types/token';
-import { formatAmount } from '../utils/formatters';
+import { WalletBalance } from '@/types/token';
+import { formatAmount } from '@/utils/formatters';
+import { ENV } from '@/config/env';
 
 interface HeaderProps {
   onOpenHistory: () => void;
@@ -45,14 +46,14 @@ export function Header({
         <div>
           <div className="flex items-center gap-2">
             <span className="font-extrabold text-xl tracking-tight text-white">
-              Omni<span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-pink-400">Swap</span>
+              {ENV.APP_NAME.slice(0, 4)}<span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-pink-400">{ENV.APP_NAME.slice(4) || 'Swap'}</span>
             </span>
             <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
               DeFi v2
             </span>
           </div>
           <p className="text-[11px] text-zinc-400 hidden sm:block">
-            Decentralized Multi-Asset Exchange
+            {ENV.APP_DESCRIPTION}
           </p>
         </div>
       </div>

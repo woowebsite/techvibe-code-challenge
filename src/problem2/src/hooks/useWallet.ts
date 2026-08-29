@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { WalletBalance, SwapTransaction } from '../types/token';
+import { WalletBalance, SwapTransaction } from '@/types/token';
 
 const STORAGE_KEY_BALANCES = 'fancy_swap_wallet_balances_v1';
 const STORAGE_KEY_HISTORY = 'fancy_swap_tx_history_v1';

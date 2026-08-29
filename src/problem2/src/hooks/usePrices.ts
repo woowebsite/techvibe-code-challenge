@@ -1,33 +1,31 @@
-import { useState, useEffect, useCallback } from 'react';
-import { Token } from '../types/token';
-import { fetchTokenPrices } from '../services/priceService';
+import { useCallback, useMemo } from 'react';
+import { useQuery } from '@tanstack/react-query';
+import { Token } from '@/types/token';
+import { fetchTokenPrices } from '@/services/priceService';
+import { ENV } from '@/config/env';
 
 export function usePrices() {
-  const [tokens, setTokens] = useState<Token[]>([]);
-  const [isLoading, setIsLoading] = useState<boolean>(true);
-  const [error, setError] = useState<string | null>(null);
-  const [lastUpdated, setLastUpdated] = useState<Date | null>(null);
+  const {
+    data: tokens = [],
+    isLoading,
+    isFetching,
+    isError,
+    error,
+    dataUpdatedAt,
+    refetch,
+  } = useQuery<Token[], Error>({
+    queryKey: ['token-prices'],
+    queryFn: fetchTokenPrices,
+    refetchInterval: ENV.PRICE_REFETCH_INTERVAL_MS,
+    staleTime: ENV.PRICE_STALE_TIME_MS,
+    retry: 2,
+    refetchOnWindowFocus: true,
+  });
 
-  const loadPrices = useCallback(async () => {
-    try {
-      setIsLoading(true);
-      setError(null);
-      const data = await fetchTokenPrices();
-      setTokens(data);
-      setLastUpdated(new Date());
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unknown error loading prices');
-    } finally {
-      setIsLoading(false);
-    }
-  }, []);
-
-  useEffect(() => {
-    loadPrices();
-    // Auto-refresh prices every 60 seconds
-    const interval = setInterval(loadPrices, 60000);
-    return () => clearInterval(interval);
-  }, [loadPrices]);
+  const lastUpdated = useMemo(
+    () => (dataUpdatedAt ? new Date(dataUpdatedAt) : null),
+    [dataUpdatedAt]
+  );
 
   const getTokenByCurrency = useCallback(
     (currency: string): Token | undefined => {
@@ -38,10 +36,13 @@ export function usePrices() {
 
   return {
     tokens,
-    isLoading,
-    error,
+    isLoading: isLoading || isFetching,
+    isInitialLoading: isLoading,
+    isFetching,
+    isError,
+    error: isError ? error?.message || 'Error loading prices' : null,
     lastUpdated,
-    refreshPrices: loadPrices,
+    refreshPrices: () => refetch(),
     getTokenByCurrency,
   };
 }

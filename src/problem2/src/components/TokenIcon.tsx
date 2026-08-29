@@ -1,4 +1,5 @@
 import { useState } from 'react';
+import { getTokenIconUrl } from '@/services/priceService';
 
 interface TokenIconProps {
   symbol: string;
@@ -36,7 +37,7 @@ export function TokenIcon({ symbol, className = '', size = 'md' }: TokenIconProp
   const [hasError, setHasError] = useState(false);
   const sizeClasses = SIZE_MAP[size] || SIZE_MAP.md;
 
-  const iconUrl = `https://raw.githubusercontent.com/Switcheo/token-icons/main/tokens/${symbol}.svg`;
+  const iconUrl = getTokenIconUrl(symbol);
 
   if (hasError || !symbol) {
     const bgGradient = getSymbolColor(symbol || '??');

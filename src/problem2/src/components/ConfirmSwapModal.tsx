@@ -10,14 +10,14 @@ import {
   Sparkles,
 } from 'lucide-react';
 import confetti from 'canvas-confetti';
-import { Token } from '../types/token';
-import { TokenIcon } from './TokenIcon';
+import { Token } from '@/types/token';
+import { TokenIcon } from '@/components/TokenIcon';
 import {
   formatCurrency,
   formatAmount,
   generateTxHash,
   truncateHash,
-} from '../utils/formatters';
+} from '@/utils/formatters';
 
 interface ConfirmSwapModalProps {
   isOpen: boolean;
