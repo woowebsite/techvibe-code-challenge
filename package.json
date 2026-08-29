@@ -1,0 +1,11 @@
+{
+  "name": "techvibe-code-challenge",
+  "version": "1.0.0",
+  "private": true,
+  "scripts": {
+    "test:problem1": "node src/problem1/test.js",
+    "dev:problem2": "cd src/problem2 && npm run dev",
+    "build:problem2": "cd src/problem2 && npm run build",
+    "preview:problem2": "cd src/problem2 && npm run preview"
+  }
+}
