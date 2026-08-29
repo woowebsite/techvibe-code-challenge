@@ -33,8 +33,6 @@ describe('SlippageSettings Component', () => {
       />
     );
 
-    expect(
-      screen.getByText(/High slippage increase risk/i)
-    ).toBeInTheDocument();
+    expect(screen.getByText(/High slippage increase risk/i)).toBeInTheDocument();
   });
 });

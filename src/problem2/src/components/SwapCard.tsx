@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useMemo, useCallback, memo } from 'react';
 import { ArrowDownUp, Sparkles, ArrowRightLeft } from 'lucide-react';
 import { Token, SwapField } from '@/types/token';
 import { TokenInput } from '@/components/TokenInput';
@@ -6,6 +6,7 @@ import { SwapDetails } from '@/components/SwapDetails';
 import { SlippageSettings } from '@/components/SlippageSettings';
 import { TokenSelectModal } from '@/components/TokenSelectModal';
 import { ConfirmSwapModal } from '@/components/ConfirmSwapModal';
+import { DEFAULT_SLIPPAGE, DEFAULT_QUICK_PAIRS } from '@/constants/swap';
 
 interface SwapCardProps {
   tokens: Token[];
@@ -22,20 +23,19 @@ interface SwapCardProps {
   ) => void;
 }
 
-export function SwapCard({
+function SwapCardComponent({
   tokens,
   isLoadingPrices,
   getBalance,
   onExecuteSwap,
 }: SwapCardProps) {
-  const [fromToken, setFromToken] = useState<Token | undefined>();
-  const [toToken, setToToken] = useState<Token | undefined>();
+  const [fromCurrency, setFromCurrency] = useState<string>('ETH');
+  const [toCurrency, setToCurrency] = useState<string>('USDC');
 
-  const [fromAmount, setFromAmount] = useState<string>('');
-  const [toAmount, setToAmount] = useState<string>('');
-  const [lastEditedField, setLastEditedField] = useState<SwapField>('from');
+  const [activeAmount, setActiveAmount] = useState<string>('');
+  const [activeField, setActiveField] = useState<SwapField>('from');
 
-  const [slippage, setSlippage] = useState<number>(0.5);
+  const [slippage, setSlippage] = useState<number>(DEFAULT_SLIPPAGE);
   const [isSettingsOpen, setIsSettingsOpen] = useState(false);
 
   // Modals
@@ -45,92 +45,79 @@ export function SwapCard({
   // Animation state for swap button flip
   const [isFlipping, setIsFlipping] = useState(false);
 
-  // Initialize default tokens once tokens are loaded
-  useEffect(() => {
-    if (tokens.length > 0 && !fromToken && !toToken) {
-      const defaultFrom = tokens.find((t) => t.currency === 'ETH') || tokens[0];
-      const defaultTo =
-        tokens.find((t) => t.currency === 'USDC') ||
-        tokens.find((t) => t.currency !== defaultFrom.currency) ||
-        tokens[1];
+  // O(1) Token Map lookup cache for instantaneous resolution
+  const tokensMap = useMemo(
+    () => new Map<string, Token>(tokens.map((t) => [t.currency, t])),
+    [tokens]
+  );
 
-      setFromToken(defaultFrom);
-      setToToken(defaultTo);
+  // Derive tokens directly from tokensMap during render
+  const fromToken = useMemo(() => {
+    if (tokens.length === 0) return undefined;
+    return tokensMap.get(fromCurrency) || tokens[0];
+  }, [tokens, tokensMap, fromCurrency]);
+
+  const toToken = useMemo(() => {
+    if (tokens.length === 0) return undefined;
+    const found = tokensMap.get(toCurrency);
+    if (found) return found;
+    return tokens.find((t) => t.currency !== fromCurrency) || tokens[1] || tokens[0];
+  }, [tokens, tokensMap, toCurrency, fromCurrency]);
+
+  // Derived two-way conversion amounts
+  const { fromAmount, toAmount } = useMemo(() => {
+    if (!fromToken || !toToken || fromToken.price <= 0 || toToken.price <= 0) {
+      return { fromAmount: '', toAmount: '' };
     }
-  }, [tokens, fromToken, toToken]);
 
-  // Keep token prices updated if background sync occurs
-  useEffect(() => {
-    if (tokens.length > 0) {
-      if (fromToken) {
-        const fresh = tokens.find((t) => t.currency === fromToken.currency);
-        if (fresh && fresh.price !== fromToken.price) setFromToken(fresh);
-      }
-      if (toToken) {
-        const fresh = tokens.find((t) => t.currency === toToken.currency);
-        if (fresh && fresh.price !== toToken.price) setToToken(fresh);
-      }
-    }
-  }, [tokens, fromToken, toToken]);
-
-  // Dynamic Rate Calculation
-  useEffect(() => {
-    if (!fromToken || !toToken || fromToken.price <= 0 || toToken.price <= 0) return;
-
-    if (lastEditedField === 'from') {
-      const numFrom = parseFloat(fromAmount);
+    if (activeField === 'from') {
+      const numFrom = parseFloat(activeAmount);
       if (isNaN(numFrom) || numFrom <= 0) {
-        setToAmount('');
-      } else {
-        const calculatedTo = (numFrom * fromToken.price) / toToken.price;
-        // Format to max 6 clean decimals
-        const formatted = parseFloat(calculatedTo.toFixed(6)).toString();
-        setToAmount(formatted);
+        return { fromAmount: activeAmount, toAmount: '' };
       }
+      const calculatedTo = (numFrom * fromToken.price) / toToken.price;
+      const formatted = parseFloat(calculatedTo.toFixed(6)).toString();
+      return { fromAmount: activeAmount, toAmount: formatted };
     } else {
-      const numTo = parseFloat(toAmount);
+      const numTo = parseFloat(activeAmount);
       if (isNaN(numTo) || numTo <= 0) {
-        setFromAmount('');
-      } else {
-        const calculatedFrom = (numTo * toToken.price) / fromToken.price;
-        const formatted = parseFloat(calculatedFrom.toFixed(6)).toString();
-        setFromAmount(formatted);
+        return { fromAmount: '', toAmount: activeAmount };
       }
+      const calculatedFrom = (numTo * toToken.price) / fromToken.price;
+      const formatted = parseFloat(calculatedFrom.toFixed(6)).toString();
+      return { fromAmount: formatted, toAmount: activeAmount };
     }
-  }, [fromAmount, toAmount, fromToken, toToken, lastEditedField]);
+  }, [activeAmount, activeField, fromToken, toToken]);
 
-  // Handle Token Flip / Invert
-  const handleFlipTokens = () => {
+  // Handle Token Flip / Invert with memoized callback
+  const handleFlipTokens = useCallback(() => {
     setIsFlipping(true);
     setTimeout(() => setIsFlipping(false), 400);
 
-    const prevFromToken = fromToken;
-    const prevToToken = toToken;
-    const prevFromAmount = fromAmount;
-    const prevToAmount = toAmount;
+    setFromCurrency((prevFrom) => {
+      setToCurrency(prevFrom);
+      return toCurrency;
+    });
+  }, [toCurrency]);
 
-    setFromToken(prevToToken);
-    setToToken(prevFromToken);
-    setFromAmount(prevToAmount);
-    setToAmount(prevFromAmount);
-  };
-
-  // Handle Token Selection
-  const handleSelectToken = (token: Token) => {
-    if (modalField === 'from') {
-      if (toToken && token.currency === toToken.currency) {
-        // Swap them if user picks the same
-        setToToken(fromToken);
+  // Handle Token Selection with memoized callback
+  const handleSelectToken = useCallback(
+    (token: Token) => {
+      if (modalField === 'from') {
+        if (token.currency === toCurrency) {
+          setToCurrency(fromCurrency);
+        }
+        setFromCurrency(token.currency);
+      } else if (modalField === 'to') {
+        if (token.currency === fromCurrency) {
+          setFromCurrency(toCurrency);
+        }
+        setToCurrency(token.currency);
       }
-      setFromToken(token);
-    } else if (modalField === 'to') {
-      if (fromToken && token.currency === fromToken.currency) {
-        setFromToken(toToken);
-      }
-      setToToken(token);
-    }
-    setModalField(null);
-  };
+      setModalField(null);
+    },
+    [modalField, fromCurrency, toCurrency]
+  );
 
   // Validation logic
   const fromBalance = fromToken ? getBalance(fromToken.currency) : 0;
@@ -154,23 +141,24 @@ export function SwapCard({
     return { isValid: true, buttonText: 'Swap Now', error: null };
   }, [fromToken, toToken, fromAmount, numFromAmount, fromBalance]);
 
-  const handleConfirmSuccess = (txHash: string) => {
-    if (fromToken && toToken) {
-      const rate = fromToken.price / toToken.price;
-      onExecuteSwap(
-        fromToken.currency,
-        parseFloat(fromAmount),
-        toToken.currency,
-        parseFloat(toAmount),
-        rate,
-        slippage,
-        txHash
-      );
-      // Reset input amounts after successful swap
-      setFromAmount('');
-      setToAmount('');
-    }
-  };
+  const handleConfirmSuccess = useCallback(
+    (txHash: string) => {
+      if (fromToken && toToken) {
+        const rate = fromToken.price / toToken.price;
+        onExecuteSwap(
+          fromToken.currency,
+          parseFloat(fromAmount),
+          toToken.currency,
+          parseFloat(toAmount),
+          rate,
+          slippage,
+          txHash
+        );
+        setActiveAmount('');
+      }
+    },
+    [fromToken, toToken, fromAmount, toAmount, slippage, onExecuteSwap]
+  );
 
   return (
     <div className="w-full max-w-lg mx-auto">
@@ -183,9 +171,7 @@ export function SwapCard({
           {/* Card Top Title & Controls */}
           <div className="flex items-center justify-between mb-5">
             <div className="flex items-center gap-2">
-              <h2 className="text-xl font-bold text-white tracking-tight">
-                Swap Assets
-              </h2>
+              <h2 className="text-xl font-bold text-white tracking-tight">Swap Assets</h2>
               <span className="flex items-center gap-1 text-[11px] font-semibold text-indigo-400 bg-indigo-950/60 border border-indigo-500/30 px-2.5 py-0.5 rounded-full">
                 <Sparkles className="w-3 h-3 text-indigo-300" />
                 Zero Slippage Router
@@ -196,7 +182,7 @@ export function SwapCard({
               slippage={slippage}
               onSlippageChange={setSlippage}
               isOpen={isSettingsOpen}
-              onToggle={() => setIsSettingsOpen(!isSettingsOpen)}
+              onToggle={() => setIsSettingsOpen((prev) => !prev)}
             />
           </div>
 
@@ -214,8 +200,8 @@ export function SwapCard({
               token={fromToken}
               amount={fromAmount}
               onChangeAmount={(val) => {
-                setLastEditedField('from');
-                setFromAmount(val);
+                setActiveField('from');
+                setActiveAmount(val);
               }}
               onSelectTokenClick={() => setModalField('from')}
               balance={fromBalance}
@@ -245,8 +231,8 @@ export function SwapCard({
               token={toToken}
               amount={toAmount}
               onChangeAmount={(val) => {
-                setLastEditedField('to');
-                setToAmount(val);
+                setActiveField('to');
+                setActiveAmount(val);
               }}
               onSelectTokenClick={() => setModalField('to')}
               balance={toBalance}
@@ -288,22 +274,13 @@ export function SwapCard({
           <div className="mt-5 pt-4 border-t border-zinc-800/60 flex items-center justify-between text-xs text-zinc-400">
             <span className="text-[11px] font-semibold text-zinc-400">Quick Pairs:</span>
             <div className="flex gap-2">
-              {[
-                ['ETH', 'USDC'],
-                ['WBTC', 'USDC'],
-                ['ATOM', 'OSMO'],
-                ['SWTH', 'USDC'],
-              ].map(([pairFrom, pairTo]) => (
+              {DEFAULT_QUICK_PAIRS.map(([pairFrom, pairTo]) => (
                 <button
                   key={`${pairFrom}-${pairTo}`}
                   type="button"
                   onClick={() => {
-                    const tokenA = tokens.find((t) => t.currency === pairFrom);
-                    const tokenB = tokens.find((t) => t.currency === pairTo);
-                    if (tokenA && tokenB) {
-                      setFromToken(tokenA);
-                      setToToken(tokenB);
-                    }
+                    setFromCurrency(pairFrom);
+                    setToCurrency(pairTo);
                   }}
                   className="px-2 py-1 rounded-lg bg-zinc-900/80 hover:bg-zinc-800 border border-zinc-800 hover:border-zinc-700 text-[11px] font-medium text-zinc-300 hover:text-white transition-all"
                 >
@@ -342,3 +319,5 @@ export function SwapCard({
     </div>
   );
 }
+
+export const SwapCard = memo(SwapCardComponent);

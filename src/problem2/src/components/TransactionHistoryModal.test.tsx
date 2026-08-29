@@ -30,9 +30,7 @@ describe('TransactionHistoryModal Component', () => {
     );
 
     expect(screen.getByText('No transactions yet')).toBeInTheDocument();
-    expect(
-      screen.getByText('Your completed swaps will appear here')
-    ).toBeInTheDocument();
+    expect(screen.getByText('Your completed swaps will appear here')).toBeInTheDocument();
   });
 
   it('renders list of transactions with token amounts and tx hashes', () => {

@@ -53,7 +53,7 @@ export function formatCurrency(value: number, decimals: number = 2): string {
 export function formatAmount(value: number, maxDecimals: number = 6): string {
   if (isNaN(value) || value === 0) return '0';
   if (value < 0.000001) return '< 0.000001';
-  
+
   // Strip trailing zeros if integer or clean decimal
   const formatted = value.toLocaleString('en-US', {
     maximumFractionDigits: maxDecimals,

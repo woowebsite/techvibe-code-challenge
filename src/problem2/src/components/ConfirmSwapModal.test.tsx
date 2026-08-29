@@ -39,9 +39,7 @@ describe('ConfirmSwapModal Component', () => {
       />
     );
 
-    expect(
-      screen.getByRole('heading', { name: /Confirm Swap/i })
-    ).toBeInTheDocument();
+    expect(screen.getByRole('heading', { name: /Confirm Swap/i })).toBeInTheDocument();
     expect(screen.getByText('1.5 ETH')).toBeInTheDocument();
     expect(screen.getByText('3,000 USDC')).toBeInTheDocument();
 
@@ -59,8 +57,6 @@ describe('ConfirmSwapModal Component', () => {
       { timeout: 3000 }
     );
 
-    expect(handleConfirm).toHaveBeenCalledWith(
-      expect.stringMatching(/^0x[0-9a-f]{64}$/)
-    );
+    expect(handleConfirm).toHaveBeenCalledWith(expect.stringMatching(/^0x[0-9a-f]{64}$/));
   });
 });

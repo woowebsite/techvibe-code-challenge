@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, memo } from 'react';
 import { getTokenIconUrl } from '@/services/priceService';
 
 interface TokenIconProps {
@@ -12,9 +12,8 @@ const SIZE_MAP = {
   md: 'w-7 h-7 text-xs',
   lg: 'w-9 h-9 text-sm',
   xl: 'w-12 h-12 text-base',
-};
+} as const;
 
-// Distinct colors for fallback badges
 const COLOR_PALETTE = [
   'from-blue-600 to-indigo-600',
   'from-purple-600 to-pink-600',
@@ -22,7 +21,7 @@ const COLOR_PALETTE = [
   'from-amber-500 to-orange-600',
   'from-cyan-500 to-blue-600',
   'from-rose-500 to-pink-600',
-];
+] as const;
 
 function getSymbolColor(symbol: string): string {
   let hash = 0;
@@ -33,10 +32,9 @@ function getSymbolColor(symbol: string): string {
   return COLOR_PALETTE[index];
 }
 
-export function TokenIcon({ symbol, className = '', size = 'md' }: TokenIconProps) {
+function TokenIconComponent({ symbol, className = '', size = 'md' }: TokenIconProps) {
   const [hasError, setHasError] = useState(false);
   const sizeClasses = SIZE_MAP[size] || SIZE_MAP.md;
-
   const iconUrl = getTokenIconUrl(symbol);
 
   if (hasError || !symbol) {
@@ -61,3 +59,5 @@ export function TokenIcon({ symbol, className = '', size = 'md' }: TokenIconProp
     />
   );
 }
+
+export const TokenIcon = memo(TokenIconComponent);

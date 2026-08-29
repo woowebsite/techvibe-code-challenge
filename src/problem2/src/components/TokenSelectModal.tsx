@@ -1,4 +1,4 @@
-import { useState, useMemo, useEffect, useRef } from 'react';
+import { useState, useMemo, useEffect, useRef, useCallback, memo } from 'react';
 import { Search, X, Check, Sparkles } from 'lucide-react';
 import { Token } from '@/types/token';
 import { TokenIcon } from '@/components/TokenIcon';
@@ -14,7 +14,63 @@ interface TokenSelectModalProps {
   getBalance: (currency: string) => number;
 }
 
-export function TokenSelectModal({
+interface TokenRowItemProps {
+  token: Token;
+  isSelected: boolean;
+  isOther: boolean;
+  balance: number;
+  onSelect: (token: Token) => void;
+}
+
+const TokenRowItem = memo(function TokenRowItem({
+  token,
+  isSelected,
+  isOther,
+  balance,
+  onSelect,
+}: TokenRowItemProps) {
+  return (
+    <button
+      key={token.currency}
+      onClick={() => onSelect(token)}
+      className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl text-left transition-all ${
+        isSelected
+          ? 'bg-indigo-600/15 border border-indigo-500/30 text-white'
+          : 'hover:bg-zinc-800/60 text-zinc-200 border border-transparent'
+      }`}
+    >
+      <div className="flex items-center gap-3 min-w-0">
+        <TokenIcon symbol={token.currency} size="lg" />
+        <div className="truncate">
+          <div className="flex items-center gap-2">
+            <span className="font-bold text-white text-sm">{token.currency}</span>
+            {isOther && (
+              <span className="text-[10px] uppercase font-semibold px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-400">
+                Swapping with
+              </span>
+            )}
+          </div>
+          <div className="text-xs text-zinc-400 truncate">{token.name}</div>
+        </div>
+      </div>
+
+      <div className="text-right shrink-0 ml-3">
+        <div className="text-xs font-semibold text-zinc-200">
+          {formatAmount(balance)} {token.currency}
+        </div>
+        <div className="text-[11px] text-zinc-400">{formatCurrency(token.price)}</div>
+      </div>
+
+      {isSelected && (
+        <div className="ml-2 pl-2 text-indigo-400">
+          <Check className="w-4 h-4" />
+        </div>
+      )}
+    </button>
+  );
+});
+
+function TokenSelectModalComponent({
   isOpen,
   onClose,
   onSelect,
@@ -26,9 +82,22 @@ export function TokenSelectModal({
   const [searchQuery, setSearchQuery] = useState('');
   const searchInputRef = useRef<HTMLInputElement>(null);
 
+  const handleClose = useCallback(() => {
+    setSearchQuery('');
+    onClose();
+  }, [onClose]);
+
+  const handleSelect = useCallback(
+    (token: Token) => {
+      setSearchQuery('');
+      onSelect(token);
+      onClose();
+    },
+    [onSelect, onClose]
+  );
+
   useEffect(() => {
     if (isOpen) {
-      setSearchQuery('');
       setTimeout(() => {
         searchInputRef.current?.focus();
       }, 50);
@@ -38,12 +107,12 @@ export function TokenSelectModal({
   useEffect(() => {
     const handleKeyDown = (e: KeyboardEvent) => {
       if (e.key === 'Escape' && isOpen) {
-        onClose();
+        handleClose();
       }
     };
     window.addEventListener('keydown', handleKeyDown);
     return () => window.removeEventListener('keydown', handleKeyDown);
-  }, [isOpen, onClose]);
+  }, [isOpen, handleClose]);
 
   const filteredTokens = useMemo(() => {
     const query = searchQuery.trim().toLowerCase();
@@ -51,8 +120,7 @@ export function TokenSelectModal({
 
     return tokens.filter(
       (t) =>
-        t.currency.toLowerCase().includes(query) ||
-        t.name.toLowerCase().includes(query)
+        t.currency.toLowerCase().includes(query) || t.name.toLowerCase().includes(query)
     );
   }, [tokens, searchQuery]);
 
@@ -67,7 +135,7 @@ export function TokenSelectModal({
       {/* Backdrop */}
       <div
         className="fixed inset-0 bg-black/70 backdrop-blur-md transition-opacity animate-fade-in"
-        onClick={onClose}
+        onClick={handleClose}
       />
 
       {/* Modal Dialog */}
@@ -81,7 +149,7 @@ export function TokenSelectModal({
             </span>
           </div>
           <button
-            onClick={onClose}
+            onClick={handleClose}
             className="p-2 rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-800/80 transition-colors"
             aria-label="Close"
           >
@@ -124,10 +192,7 @@ export function TokenSelectModal({
                   return (
                     <button
                       key={token.currency}
-                      onClick={() => {
-                        onSelect(token);
-                        onClose();
-                      }}
+                      onClick={() => handleSelect(token)}
                       className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl border text-xs font-semibold transition-all ${
                         isSelected
                           ? 'bg-indigo-600/30 border-indigo-500/50 text-indigo-300 ring-1 ring-indigo-500/40'
@@ -149,7 +214,9 @@ export function TokenSelectModal({
           {filteredTokens.length === 0 ? (
             <div className="py-12 text-center text-zinc-500 text-sm">
               <p>No tokens found for "{searchQuery}"</p>
-              <p className="text-xs text-zinc-600 mt-1">Try searching another symbol or name</p>
+              <p className="text-xs text-zinc-600 mt-1">
+                Try searching another symbol or name
+              </p>
             </div>
           ) : (
             filteredTokens.map((token) => {
@@ -158,52 +225,14 @@ export function TokenSelectModal({
               const balance = getBalance(token.currency);
 
               return (
-                <button
+                <TokenRowItem
                   key={token.currency}
-                  onClick={() => {
-                    onSelect(token);
-                    onClose();
-                  }}
-                  className={`w-full flex items-center justify-between px-4 py-3 rounded-2xl text-left transition-all ${
-                    isSelected
-                      ? 'bg-indigo-600/15 border border-indigo-500/30 text-white'
-                      : 'hover:bg-zinc-800/60 text-zinc-200 border border-transparent'
-                  }`}
-                >
-                  <div className="flex items-center gap-3 min-w-0">
-                    <TokenIcon symbol={token.currency} size="lg" />
-                    <div className="truncate">
-                      <div className="flex items-center gap-2">
-                        <span className="font-bold text-white text-sm">
-                          {token.currency}
-                        </span>
-                        {isOther && (
-                          <span className="text-[10px] uppercase font-semibold px-1.5 py-0.5 rounded bg-zinc-800 text-zinc-400">
-                            Swapping with
-                          </span>
-                        )}
-                      </div>
-                      <div className="text-xs text-zinc-400 truncate">
-                        {token.name}
-                      </div>
-                    </div>
-                  </div>
-
-                  <div className="text-right shrink-0 ml-3">
-                    <div className="text-xs font-semibold text-zinc-200">
-                      {formatAmount(balance)} {token.currency}
-                    </div>
-                    <div className="text-[11px] text-zinc-400">
-                      {formatCurrency(token.price)}
-                    </div>
-                  </div>
-
-                  {isSelected && (
-                    <div className="ml-2 pl-2 text-indigo-400">
-                      <Check className="w-4 h-4" />
-                    </div>
-                  )}
-                </button>
+                  token={token}
+                  isSelected={isSelected}
+                  isOther={isOther}
+                  balance={balance}
+                  onSelect={handleSelect}
+                />
               );
             })
           )}
@@ -212,3 +241,5 @@ export function TokenSelectModal({
     </div>
   );
 }
+
+export const TokenSelectModal = memo(TokenSelectModalComponent);

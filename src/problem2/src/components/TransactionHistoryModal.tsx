@@ -1,3 +1,4 @@
+import { memo } from 'react';
 import { X, ArrowRight, CheckCircle2, Trash2 } from 'lucide-react';
 import { SwapTransaction } from '@/types/token';
 import { TokenIcon } from '@/components/TokenIcon';
@@ -10,7 +11,7 @@ interface TransactionHistoryModalProps {
   onClearHistory: () => void;
 }
 
-export function TransactionHistoryModal({
+function TransactionHistoryModalComponent({
   isOpen,
   onClose,
   transactions,
@@ -63,9 +64,7 @@ export function TransactionHistoryModal({
               <div className="w-12 h-12 rounded-full bg-zinc-800/80 flex items-center justify-center mx-auto mb-3 text-zinc-500">
                 <CheckCircle2 className="w-6 h-6" />
               </div>
-              <p className="text-sm font-medium text-zinc-400">
-                No transactions yet
-              </p>
+              <p className="text-sm font-medium text-zinc-400">No transactions yet</p>
               <p className="text-xs text-zinc-600 mt-1">
                 Your completed swaps will appear here
               </p>
@@ -123,3 +122,5 @@ export function TransactionHistoryModal({
     </div>
   );
 }
+
+export const TransactionHistoryModal = memo(TransactionHistoryModalComponent);

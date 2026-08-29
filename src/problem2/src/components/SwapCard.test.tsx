@@ -36,9 +36,7 @@ describe('SwapCard Component', () => {
     );
 
     expect(screen.getByText('Swap Assets')).toBeInTheDocument();
-    expect(
-      screen.getByRole('button', { name: /Enter an amount/i })
-    ).toBeDisabled();
+    expect(screen.getByRole('button', { name: /Enter an amount/i })).toBeDisabled();
   });
 
   it('calculates receive amount automatically when user enters pay amount', async () => {

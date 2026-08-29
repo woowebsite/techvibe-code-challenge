@@ -1,7 +1,16 @@
-import { useState } from 'react';
-import { ArrowLeftRight, ChevronDown, ChevronUp, Fuel, Route, ShieldCheck, Zap } from 'lucide-react';
+import { useState, memo, useMemo } from 'react';
+import {
+  ArrowLeftRight,
+  ChevronDown,
+  ChevronUp,
+  Fuel,
+  Route,
+  ShieldCheck,
+  Zap,
+} from 'lucide-react';
 import { Token } from '@/types/token';
 import { formatAmount } from '@/utils/formatters';
+import { ESTIMATED_GAS_FEE_USD } from '@/constants/swap';
 
 interface SwapDetailsProps {
   fromToken?: Token;
@@ -11,7 +20,7 @@ interface SwapDetailsProps {
   slippage: number;
 }
 
-export function SwapDetails({
+function SwapDetailsComponent({
   fromToken,
   toToken,
   fromAmount,
@@ -21,23 +30,36 @@ export function SwapDetails({
   const [isInverted, setIsInverted] = useState(false);
   const [isExpanded, setIsExpanded] = useState(false);
 
-  if (!fromToken || !toToken || !fromAmount || parseFloat(fromAmount) <= 0) {
+  const calculations = useMemo(() => {
+    if (!fromToken || !toToken || !fromAmount || parseFloat(fromAmount) <= 0) {
+      return null;
+    }
+
+    const rate = fromToken.price / toToken.price;
+    const invertedRate = toToken.price / fromToken.price;
+    const parsedToAmount = parseFloat(toAmount) || 0;
+    const minReceived = parsedToAmount * (1 - slippage / 100);
+
+    const numFromAmount = parseFloat(fromAmount) || 0;
+    const tradeValue = numFromAmount * fromToken.price;
+    let priceImpact = 0.02;
+    if (tradeValue > 10000) priceImpact = 0.45;
+    else if (tradeValue > 2000) priceImpact = 0.18;
+    else if (tradeValue > 500) priceImpact = 0.08;
+
+    return {
+      rate,
+      invertedRate,
+      minReceived,
+      priceImpact,
+    };
+  }, [fromToken, toToken, fromAmount, toAmount, slippage]);
+
+  if (!fromToken || !toToken || !calculations) {
     return null;
   }
 
-  const rate = fromToken.price / toToken.price;
-  const invertedRate = toToken.price / fromToken.price;
-
-  const parsedToAmount = parseFloat(toAmount) || 0;
-  const minReceived = parsedToAmount * (1 - slippage / 100);
-
-  // Price impact simulation
-  const numFromAmount = parseFloat(fromAmount) || 0;
-  const tradeValue = numFromAmount * fromToken.price;
-  let priceImpact = 0.02;
-  if (tradeValue > 10000) priceImpact = 0.45;
-  else if (tradeValue > 2000) priceImpact = 0.18;
-  else if (tradeValue > 500) priceImpact = 0.08;
+  const { rate, invertedRate, minReceived, priceImpact } = calculations;
 
   return (
     <div className="rounded-2xl bg-zinc-900/60 border border-zinc-800/80 p-3.5 transition-all text-xs">
@@ -45,7 +67,7 @@ export function SwapDetails({
       <div className="flex items-center justify-between">
         <button
           type="button"
-          onClick={() => setIsInverted(!isInverted)}
+          onClick={() => setIsInverted((prev) => !prev)}
           className="flex items-center gap-1.5 text-zinc-300 hover:text-white font-medium transition-colors group"
         >
           <Zap className="w-3.5 h-3.5 text-indigo-400 group-hover:scale-110 transition-transform" />
@@ -59,7 +81,7 @@ export function SwapDetails({
 
         <button
           type="button"
-          onClick={() => setIsExpanded(!isExpanded)}
+          onClick={() => setIsExpanded((prev) => !prev)}
           className="flex items-center gap-1 text-zinc-400 hover:text-zinc-200 transition-colors"
         >
           <span>Details</span>
@@ -91,8 +113,8 @@ export function SwapDetails({
                 priceImpact < 0.1
                   ? 'text-emerald-400'
                   : priceImpact < 0.5
-                  ? 'text-amber-400'
-                  : 'text-rose-400'
+                    ? 'text-amber-400'
+                    : 'text-rose-400'
               }`}
             >
               ~{priceImpact.toFixed(2)}%
@@ -104,7 +126,9 @@ export function SwapDetails({
               <Fuel className="w-3.5 h-3.5 text-purple-400" />
               Est. Network Fee
             </span>
-            <span className="font-semibold text-zinc-200">~$1.35</span>
+            <span className="font-semibold text-zinc-200">
+              ~${ESTIMATED_GAS_FEE_USD.toFixed(2)}
+            </span>
           </div>
 
           <div className="flex items-center justify-between">
@@ -121,3 +145,5 @@ export function SwapDetails({
     </div>
   );
 }
+
+export const SwapDetails = memo(SwapDetailsComponent);

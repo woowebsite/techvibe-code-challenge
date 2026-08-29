@@ -21,7 +21,9 @@ export async function fetchTokenPrices(): Promise<Token[]> {
     return processRawPrices(response.data);
   } catch (error) {
     if (axios.isAxiosError(error)) {
-      console.warn(`[PriceOracle] Failed to fetch prices (${error.message}), using fallback dataset.`);
+      console.warn(
+        `[PriceOracle] Failed to fetch prices (${error.message}), using fallback dataset.`
+      );
     } else {
       console.warn('[PriceOracle] Unexpected error encountered:', error);
     }

@@ -1,3 +1,4 @@
+import React, { memo, useMemo, useCallback } from 'react';
 import { ChevronDown, Wallet } from 'lucide-react';
 import { Token } from '@/types/token';
 import { TokenIcon } from '@/components/TokenIcon';
@@ -16,7 +17,7 @@ interface TokenInputProps {
   error?: string | null;
 }
 
-export function TokenInput({
+function TokenInputComponent({
   label,
   token,
   amount,
@@ -28,22 +29,29 @@ export function TokenInput({
   isLoadingPrice = false,
   error,
 }: TokenInputProps) {
-  const numericAmount = parseFloat(amount) || 0;
-  const estimatedUsd = token ? numericAmount * token.price : 0;
+  const estimatedUsd = useMemo(() => {
+    const numericAmount = parseFloat(amount) || 0;
+    return token ? numericAmount * token.price : 0;
+  }, [amount, token]);
 
-  const handleInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (isReadOnly || !onChangeAmount) return;
-    const formatted = formatNumberInput(e.target.value);
-    onChangeAmount(formatted);
-  };
+  const handleInputChange = useCallback(
+    (e: React.ChangeEvent<HTMLInputElement>) => {
+      if (isReadOnly || !onChangeAmount) return;
+      const formatted = formatNumberInput(e.target.value);
+      onChangeAmount(formatted);
+    },
+    [isReadOnly, onChangeAmount]
+  );
 
-  const handleQuickPercent = (percent: number) => {
-    if (!onChangeAmount || balance <= 0) return;
-    const targetAmount = (balance * percent) / 100;
-    // Format to 6 decimals cleanly
-    const rounded = parseFloat(targetAmount.toFixed(6)).toString();
-    onChangeAmount(rounded);
-  };
+  const handleQuickPercent = useCallback(
+    (percent: number) => {
+      if (!onChangeAmount || balance <= 0) return;
+      const targetAmount = (balance * percent) / 100;
+      const rounded = parseFloat(targetAmount.toFixed(6)).toString();
+      onChangeAmount(rounded);
+    },
+    [balance, onChangeAmount]
+  );
 
   return (
     <div
@@ -64,9 +72,7 @@ export function TokenInput({
             <div className="flex items-center gap-1 text-zinc-400">
               <Wallet className="w-3.5 h-3.5 text-zinc-500" />
               <span>Balance:</span>
-              <span className="font-semibold text-zinc-200">
-                {formatAmount(balance)}
-              </span>
+              <span className="font-semibold text-zinc-200">{formatAmount(balance)}</span>
             </div>
 
             {/* Quick buttons only for Pay / From input */}
@@ -120,14 +126,10 @@ export function TokenInput({
           {token ? (
             <>
               <TokenIcon symbol={token.currency} size="md" />
-              <span className="text-sm font-bold tracking-wide">
-                {token.currency}
-              </span>
+              <span className="text-sm font-bold tracking-wide">{token.currency}</span>
             </>
           ) : (
-            <span className="text-sm font-semibold text-indigo-400">
-              Select Token
-            </span>
+            <span className="text-sm font-semibold text-indigo-400">Select Token</span>
           )}
           <ChevronDown className="w-4 h-4 text-zinc-400" />
         </button>
@@ -152,3 +154,5 @@ export function TokenInput({
     </div>
   );
 }
+
+export const TokenInput = memo(TokenInputComponent);

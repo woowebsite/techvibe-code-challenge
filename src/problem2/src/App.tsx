@@ -16,7 +16,9 @@ export default function App() {
 
   // Top tokens for the ticker
   const tickerTokens = tokens
-    .filter((t) => ['ETH', 'WBTC', 'USDC', 'ATOM', 'OSMO', 'GMX', 'SWTH'].includes(t.currency))
+    .filter((t) =>
+      ['ETH', 'WBTC', 'USDC', 'ATOM', 'OSMO', 'GMX', 'SWTH'].includes(t.currency)
+    )
     .slice(0, 6);
 
   return (

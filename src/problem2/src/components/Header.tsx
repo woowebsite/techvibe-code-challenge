@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useState, memo, useMemo, useCallback } from 'react';
 import {
   Wallet,
   History,
@@ -22,7 +22,7 @@ interface HeaderProps {
   lastUpdated: Date | null;
 }
 
-export function Header({
+function HeaderComponent({
   onOpenHistory,
   txCount,
   balances,
@@ -33,8 +33,16 @@ export function Header({
 }: HeaderProps) {
   const [isWalletMenuOpen, setIsWalletMenuOpen] = useState(false);
 
-  // Calculate total non-zero tokens
-  const nonZeroBalances = Object.entries(balances).filter(([, bal]) => bal > 0);
+  // Memoize non-zero balances to avoid recalculating on every re-render
+  const nonZeroBalances = useMemo(
+    () => Object.entries(balances).filter(([, bal]) => bal > 0),
+    [balances]
+  );
+
+  const handleReset = useCallback(() => {
+    onResetWallet();
+    setIsWalletMenuOpen(false);
+  }, [onResetWallet]);
 
   return (
     <header className="w-full max-w-5xl mx-auto px-4 py-6 flex items-center justify-between">
@@ -46,7 +54,10 @@ export function Header({
         <div>
           <div className="flex items-center gap-2">
             <span className="font-extrabold text-xl tracking-tight text-white">
-              {ENV.APP_NAME.slice(0, 4)}<span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-pink-400">{ENV.APP_NAME.slice(4) || 'Swap'}</span>
+              {ENV.APP_NAME.slice(0, 4)}
+              <span className="text-transparent bg-clip-text bg-gradient-to-r from-indigo-400 to-pink-400">
+                {ENV.APP_NAME.slice(4) || 'Swap'}
+              </span>
             </span>
             <span className="text-[10px] uppercase font-bold tracking-wider px-2 py-0.5 rounded-full bg-indigo-500/20 text-indigo-300 border border-indigo-500/30">
               DeFi v2
@@ -98,7 +109,7 @@ export function Header({
         {/* Mock Wallet Button with Menu */}
         <div className="relative">
           <button
-            onClick={() => setIsWalletMenuOpen(!isWalletMenuOpen)}
+            onClick={() => setIsWalletMenuOpen((prev) => !prev)}
             className="flex items-center gap-2 px-3.5 py-2 rounded-2xl bg-gradient-to-r from-indigo-950/60 to-purple-950/60 hover:from-indigo-900/60 hover:to-purple-900/60 border border-indigo-500/30 text-xs font-bold text-indigo-200 transition-all shadow-sm active:scale-95"
           >
             <Wallet className="w-4 h-4 text-indigo-400" />
@@ -140,10 +151,7 @@ export function Header({
 
                 <div className="mt-3 pt-3 border-t border-zinc-800">
                   <button
-                    onClick={() => {
-                      onResetWallet();
-                      setIsWalletMenuOpen(false);
-                    }}
+                    onClick={handleReset}
                     className="w-full flex items-center justify-center gap-1.5 py-2 rounded-xl bg-zinc-800 hover:bg-rose-950/50 hover:border-rose-500/40 border border-zinc-700/60 text-xs font-semibold text-zinc-300 hover:text-rose-300 transition-all"
                   >
                     <RefreshCcw className="w-3.5 h-3.5" />
@@ -158,3 +166,5 @@ export function Header({
     </header>
   );
 }
+
+export const Header = memo(HeaderComponent);

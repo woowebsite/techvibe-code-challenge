@@ -8,10 +8,7 @@ describe('TokenIcon Component', () => {
     const img = screen.getByRole('img');
     expect(img).toBeInTheDocument();
     expect(img).toHaveAttribute('alt', 'ETH');
-    expect(img).toHaveAttribute(
-      'src',
-      expect.stringContaining('/ETH.svg')
-    );
+    expect(img).toHaveAttribute('src', expect.stringContaining('/ETH.svg'));
   });
 
   it('renders fallback badge when image onError triggers', () => {

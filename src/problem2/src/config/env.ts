@@ -14,10 +14,6 @@ export const ENV = {
   PRICE_REFETCH_INTERVAL_MS: Number(
     import.meta.env.VITE_PRICE_REFETCH_INTERVAL_MS || 60000
   ),
-  PRICE_STALE_TIME_MS: Number(
-    import.meta.env.VITE_PRICE_STALE_TIME_MS || 30000
-  ),
-  API_TIMEOUT_MS: Number(
-    import.meta.env.VITE_API_TIMEOUT_MS || 8000
-  ),
+  PRICE_STALE_TIME_MS: Number(import.meta.env.VITE_PRICE_STALE_TIME_MS || 30000),
+  API_TIMEOUT_MS: Number(import.meta.env.VITE_API_TIMEOUT_MS || 8000),
 } as const;

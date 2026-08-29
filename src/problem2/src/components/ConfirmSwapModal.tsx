@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import {
   X,
   ArrowDown,
@@ -43,24 +43,24 @@ export function ConfirmSwapModal({
   onConfirm,
 }: ConfirmSwapModalProps) {
   const [step, setStep] = useState<SwapStep>('review');
-  const [txHash, setTxHash] = useState<string>('');
+  const [txHash, setTxHash] = useState<string>(() => generateTxHash());
   const [copied, setCopied] = useState(false);
 
-  useEffect(() => {
-    if (isOpen) {
-      setStep('review');
-      setTxHash(generateTxHash());
-      setCopied(false);
-    }
-  }, [isOpen]);
+  const handleClose = () => {
+    setStep('review');
+    setCopied(false);
+    onClose();
+  };
 
   const handleConfirmSwap = () => {
+    const currentHash = generateTxHash();
+    setTxHash(currentHash);
     setStep('submitting');
 
     // Simulate blockchain confirmation delay
     setTimeout(() => {
       setStep('success');
-      onConfirm(txHash);
+      onConfirm(currentHash);
 
       // Trigger Confetti effect
       try {
@@ -95,7 +95,7 @@ export function ConfirmSwapModal({
       {/* Backdrop */}
       <div
         className="fixed inset-0 bg-black/75 backdrop-blur-md transition-opacity animate-fade-in"
-        onClick={step === 'submitting' ? undefined : onClose}
+        onClick={step === 'submitting' ? undefined : handleClose}
       />
 
       {/* Dialog */}
@@ -109,7 +109,7 @@ export function ConfirmSwapModal({
           </h3>
           {step !== 'submitting' && (
             <button
-              onClick={onClose}
+              onClick={handleClose}
               className="p-1.5 rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-800 transition-colors"
             >
               <X className="w-5 h-5" />
@@ -252,9 +252,7 @@ export function ConfirmSwapModal({
                 <div className="text-[10px] text-zinc-500 uppercase font-semibold">
                   Transaction Hash
                 </div>
-                <div className="font-mono text-zinc-300">
-                  {truncateHash(txHash)}
-                </div>
+                <div className="font-mono text-zinc-300">{truncateHash(txHash)}</div>
               </div>
 
               <div className="flex items-center gap-1.5">
@@ -282,7 +280,7 @@ export function ConfirmSwapModal({
             </div>
 
             <button
-              onClick={onClose}
+              onClick={handleClose}
               className="w-full py-3.5 rounded-2xl bg-zinc-800 hover:bg-zinc-700 text-white font-bold text-sm transition-all"
             >
               Done / Swap Again

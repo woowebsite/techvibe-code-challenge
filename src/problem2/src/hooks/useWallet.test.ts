@@ -21,15 +21,7 @@ describe('useWallet Hook', () => {
     const initialUsdc = result.current.getBalance('USDC');
 
     act(() => {
-      result.current.executeSwap(
-        'ETH',
-        1,
-        'USDC',
-        1600,
-        1600,
-        0.5,
-        '0x1234567890abcdef'
-      );
+      result.current.executeSwap('ETH', 1, 'USDC', 1600, 1600, 0.5, '0x1234567890abcdef');
     });
 
     expect(result.current.getBalance('ETH')).toBe(initialEth - 1);

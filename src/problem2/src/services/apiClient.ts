@@ -8,7 +8,7 @@ export const apiClient: AxiosInstance = axios.create({
   baseURL: ENV.PRICES_API_URL,
   timeout: ENV.API_TIMEOUT_MS,
   headers: {
-    'Accept': 'application/json',
+    Accept: 'application/json',
     'Content-Type': 'application/json',
   },
 });
@@ -16,7 +16,9 @@ export const apiClient: AxiosInstance = axios.create({
 // Request Interceptor: measure start time / add metadata
 apiClient.interceptors.request.use(
   (config: InternalAxiosRequestConfig) => {
-    (config as InternalAxiosRequestConfig & { metadata?: { startTime: number } }).metadata = {
+    (
+      config as InternalAxiosRequestConfig & { metadata?: { startTime: number } }
+    ).metadata = {
       startTime: Date.now(),
     };
     return config;
