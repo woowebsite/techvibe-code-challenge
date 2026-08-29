@@ -1,0 +1,2 @@
+#!/bin/sh
+npx --prefix src/problem2 lint-staged
