@@ -25,6 +25,9 @@ A production-grade, high-performance, and visually captivating **Decentralized C
 5. **Fault Tolerance & Error Boundary**:
    - [`src/components/ErrorBoundary.tsx`](./src/components/ErrorBoundary.tsx) to catch runtime exceptions gracefully with user-friendly recovery UI.
 
+6. **Comprehensive Automated Test Coverage (Vitest + Testing Library)**:
+   - 38/38 unit and component tests passing across 11 test suites.
+
 ---
 
 ## ⚙️ Environment Variables
@@ -44,6 +47,9 @@ A production-grade, high-performance, and visually captivating **Decentralized C
 
 ### 1. From workspace root
 ```bash
+# Run unit tests
+npm run test:problem2
+
 # Start development server
 npm run dev:problem2
 
@@ -60,6 +66,9 @@ cp .env.example .env
 
 # Install dependencies
 npm install
+
+# Run unit tests
+npm test
 
 # Start development server
 npm run dev

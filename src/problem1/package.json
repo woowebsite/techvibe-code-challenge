@@ -1,0 +1,13 @@
+{
+  "name": "problem1-three-ways-to-sum",
+  "version": "1.0.0",
+  "private": true,
+  "description": "Three unique JavaScript implementations of summation to n with unit tests",
+  "main": "index.js",
+  "scripts": {
+    "test": "node test.js"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC"
+}
