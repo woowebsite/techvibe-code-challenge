@@ -162,12 +162,12 @@ function SwapCardComponent({
 
   return (
     <div className="w-full max-w-lg mx-auto">
-      {/* Glow ambient background container */}
+      {/* Ambient glow container */}
       <div className="relative">
-        <div className="absolute -inset-1 bg-gradient-to-r from-indigo-500/20 via-purple-500/20 to-pink-500/20 rounded-[36px] blur-xl opacity-75 group-hover:opacity-100 transition duration-1000 -z-10" />
+        <div className="glow-backdrop" />
 
         {/* Swap Card Body */}
-        <div className="relative bg-zinc-950/90 backdrop-blur-2xl border border-zinc-800/90 rounded-[32px] p-5 sm:p-7 shadow-2xl">
+        <div className="relative glass-panel rounded-[32px] p-5 sm:p-7 shadow-2xl">
           {/* Card Top Title & Controls */}
           <div className="flex items-center justify-between mb-5">
             <div className="flex items-center gap-2">

@@ -70,3 +70,28 @@ npm run build
 ```
 
 The application will be accessible at `http://localhost:5173`.
+
+---
+
+## 🐳 Docker Deployment
+
+### Run with Docker Compose:
+
+```bash
+cd src/problem2
+docker compose up -d --build
+```
+
+Access the containerized application at `http://localhost:8080`.
+
+### Build & Run standalone Docker Image:
+
+```bash
+cd src/problem2
+
+# Build image
+docker build -t omniswap-frontend:latest .
+
+# Run container on port 8080
+docker run -d -p 8080:80 --name omniswap-app omniswap-frontend:latest
+```
